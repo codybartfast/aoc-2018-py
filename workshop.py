@@ -52,7 +52,7 @@ class State:
         self.value = None
 
         
-def elf_it(text, parse, part1, part2, extra_args):
+def get_cracking(text, parse, part1, part2, extra_args):
 
     state = State()
 

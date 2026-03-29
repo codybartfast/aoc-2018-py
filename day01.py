@@ -4,16 +4,14 @@ def parse(text):
     re_digits = re.compile(r"-?\d+")
 
     def parse_line(line):
-        parts = line.split()
-        return [part for part in parts]
+        return int(line)
 
     lines = text.splitlines()
     return [parse_line(line) for line in lines]
 
 
 def part1(data, args, p1_state):
-    print(f"\n{data}\n")
-    return "ans1"
+    return sum(data)
 
 
 def part2(data, args, p1_state):
