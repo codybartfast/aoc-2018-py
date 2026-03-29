@@ -1,0 +1,8 @@
+# Thank you Apple
+.DS_Store
+
+# Python-generated files
+__pycache__/
+
+# Virtual environments
+.venv
