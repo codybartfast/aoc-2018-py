@@ -1,29 +1,38 @@
-import re
+#  2018 Day 1
+#  ==========
+#
+#  Part 1: 561
+#  Part 2: 563
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000077s  (77.04 µs)
+#     Part 1:     0.000006s  (6.000 µs)
+#     Part 2:     0.007108s  (7.108 ms)
+#    Elapsed:     0.007226s  (7.226 ms)
+#  --------------------------------------
+#
+#     Date:  March 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
 
 
 def parse(text):
-    re_digits = re.compile(r"-?\d+")
-
-    def parse_line(line):
-        return int(line)
-
-    lines = text.splitlines()
-    return [parse_line(line) for line in lines]
+    return [int(line) for line in text.splitlines()]
 
 
-def part1(data, args, p1_state):
-    return sum(data)
+def part1(changes, args, p1_state):
+    return sum(changes)
 
 
-def part2(data, args, p1_state):
-    freq = 0
+def part2(changes, args, p1_state):
+    l_changes = len(changes)
     seen = set()
-
-    idx = 0
+    idx = freq = 0
     while freq not in seen:
         seen.add(freq)
-        freq += data[idx]
-        idx = (idx + 1) % len(data)
+        freq += changes[idx]
+        idx = (idx + 1) % l_changes
     return freq
 
 
