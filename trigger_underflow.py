@@ -1,6 +1,7 @@
 from pathlib import Path
 import workshop as ws
 
+YEAR = 2018
 BASE = Path(__file__).parent
 
 
@@ -10,7 +11,7 @@ def read_solvers():
     solvers = []
 
     for day in range(1, 26):
-        input_path = BASE / f"input/2017/day{day:02}/input.txt"
+        input_path = BASE / f"input/{YEAR}/day{day:02}/input.txt"
         solver_path = BASE / f"day{day:02}.py"
 
         if not (input_path.is_file() and solver_path.is_file()):
