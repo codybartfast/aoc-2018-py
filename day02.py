@@ -20,7 +20,12 @@ def part1(data, args, p1_state):
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    for i, id1 in enumerate(data):
+        for id2 in data[i + 1:]:
+            diff_count = sum(c1 != c2 for c1, c2 in zip(id1, id2))
+            if diff_count == 1:
+                return "".join(c1 for c1, c2 in zip(id1, id2) if c1 == c2)
+
 
 
 # Runner
