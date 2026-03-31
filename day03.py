@@ -15,7 +15,7 @@ def parse(text):
 def part1(data, args, p1_state):
     width = height = 1000
     cloth = array("B", [0] * width * height)
-    for id, (x, y), (w, h) in data:
+    for _, (x, y), (w, h) in data:
         for row in range(y, y + h):
             start = row * width + x
             for idx in range(start, start + w):
@@ -24,7 +24,19 @@ def part1(data, args, p1_state):
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    width = height = 1000
+    cloth = array("H", [0] * width * height)
+    candidates = set((panel[0] for panel in data))
+    for id, (x, y), (w, h) in data:
+        for row in range(y, y + h):
+            start = row * width + x
+            for idx in range(start, start + w):
+                if cloth[idx] != 0:
+                    candidates.discard(id)
+                    candidates.discard(cloth[idx])
+                else:
+                    cloth[idx] = id
+    return candidates.pop()
 
 
 # Runner
