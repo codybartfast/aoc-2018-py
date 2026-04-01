@@ -1,7 +1,8 @@
 import re
 from collections import Counter
 
-def parse(text): # and sort
+
+def parse(text):  # and sort
     re_digits = re.compile(r"-?\d+")
 
     def parse_line(line):
@@ -12,13 +13,16 @@ def parse(text): # and sort
     lines.sort()
     return [parse_line(line) for line in lines]
 
+
 def sleepy_minute(spans):
     hour = [0] * 60
     for start, end in spans:
         for min in range(start, end):
             hour[min] += 1
 
-    return hour.index(max(hour))
+    times_asleep = max(hour)
+    return hour.index(times_asleep), times_asleep
+
 
 def part1(data, args, p1_state):
     guard = None
@@ -35,19 +39,24 @@ def part1(data, args, p1_state):
                 sleep_start = minute
             case "u":
                 assert spans is not None
-                duration += (minute - sleep_start)
+                duration += minute - sleep_start
                 spans.append((sleep_start, minute))
                 db[guard] = duration, spans
             case _:
                 assert False, event
-            
+
     sleepy = max(db.items(), key=lambda kvp: kvp[1][0])
-                    
-    return int(sleepy[0][1:]) * sleepy_minute(sleepy[1][1])
+
+    p1_state.value = db
+    return int(sleepy[0][1:]) * sleepy_minute(sleepy[1][1])[0]
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    db = p1_state.value
+    strat2 = [(guard, sleepy_minute(spans)) for (guard, (_, spans)) in db.items()]
+    guard, (zzz_minute, _) = max(strat2, key=lambda info: info[1][1])
+
+    return int(guard[1:]) * zzz_minute
 
 
 # Runner
@@ -56,7 +65,7 @@ def part2(data, args, p1_state):
 
 def collect_stars(text=None, filepath=None, extra_args=None):
     import workshop as ws
-    
+
     if not text and filepath:
         text = open(filepath).read().strip()
     ws.get_cracking(text, parse, part1, part2, extra_args)
