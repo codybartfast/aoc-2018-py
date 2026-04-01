@@ -1,17 +1,49 @@
-import re
-from collections import Counter
+#  2018 Day 4
+#  ==========
+#
+#  Part 1: 115167
+#  Part 2: 32070
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000306s  (306.3 µs)
+#     Part 1:     0.000080s  (79.63 µs)
+#     Part 2:     0.000097s  (97.08 µs)
+#    Elapsed:     0.000520s  (519.8 µs)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
 
 
 def parse(text):  # and sort
-    re_digits = re.compile(r"-?\d+")
-
     def parse_line(line):
         parts = line.split()
         return int(parts[1][3:5]), parts[3]
 
-    lines = text.splitlines()
-    lines.sort()
+    lines = sorted(text.splitlines())
     return [parse_line(line) for line in lines]
+
+
+def naps_by_guard(observations):
+    nap_db = {}
+
+    for i, (minute, event) in enumerate(observations):
+        match event[0]:
+            case "#":  #  #<guard-id>
+                guard = event
+                time_asleep, nap_spans = nap_db.get(guard, (0, []))
+            case "a":  # falls [a]sleep
+                nap_start = minute
+            case "u":  # wakes [u]p
+                time_asleep += minute - nap_start
+                nap_spans.append((nap_start, minute))
+                nap_db[guard] = time_asleep, nap_spans
+            case _:
+                assert False, event
+
+    return nap_db
 
 
 def sleepy_minute(spans):
@@ -20,43 +52,27 @@ def sleepy_minute(spans):
         for min in range(start, end):
             hour[min] += 1
 
-    times_asleep = max(hour)
-    return hour.index(times_asleep), times_asleep
+    max_naps = max(hour)
+    return hour.index(max_naps), max_naps
 
 
-def part1(data, args, p1_state):
-    guard = None
-    duration = None
-    spans = None
-    db = {}
-    sleep_start = None
-    for i, (minute, event) in enumerate(data):
-        match event[0]:
-            case "#":
-                guard = event
-                duration, spans = db.get(guard, (0, []))
-            case "a":
-                sleep_start = minute
-            case "u":
-                assert spans is not None
-                duration += minute - sleep_start
-                spans.append((sleep_start, minute))
-                db[guard] = duration, spans
-            case _:
-                assert False, event
+def part1(observations, args, p1_state):
+    nap_db = naps_by_guard(observations)
 
-    sleepy = max(db.items(), key=lambda kvp: kvp[1][0])
+    guard, (time_asleep, nap_spans) = max(nap_db.items(), key=lambda kvp: kvp[1][0])
 
-    p1_state.value = db
-    return int(sleepy[0][1:]) * sleepy_minute(sleepy[1][1])[0]
+    p1_state.value = nap_db
+    nappy_minute, nap_count = sleepy_minute(nap_spans)
+    return int(guard[1:]) * nappy_minute
 
 
-def part2(data, args, p1_state):
-    db = p1_state.value
-    strat2 = [(guard, sleepy_minute(spans)) for (guard, (_, spans)) in db.items()]
-    guard, (zzz_minute, _) = max(strat2, key=lambda info: info[1][1])
+def part2(_, __, p1_state):
+    nap_db = p1_state.value
 
-    return int(guard[1:]) * zzz_minute
+    strat2 = [(guard, sleepy_minute(spans)) for (guard, (_, spans)) in nap_db.items()]
+    guard, (sleep_time, _) = max(strat2, key=lambda info: info[1][1])
+
+    return int(guard[1:]) * sleep_time
 
 
 # Runner
