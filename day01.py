@@ -40,7 +40,7 @@ def part2(changes, args, p1_state):
 ################################################################################
 
 
-def earn_stars(text=None, filepath=None, extra_args=None):
+def collect_stars(text=None, filepath=None, extra_args=None):
     import workshop as ws
 
     if not text and filepath:
@@ -56,4 +56,4 @@ if __name__ == "__main__":
     filepath = ws.get_filepath(file)
     if filepath:
         extra_args = sys.argv[2:]
-        earn_stars(filepath=filepath, extra_args=extra_args)
+        collect_stars(filepath=filepath, extra_args=extra_args)

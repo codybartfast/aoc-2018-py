@@ -1,30 +1,48 @@
+#  2018 Day 5
+#  ==========
+#
+#  Part 1: 11194
+#  Part 2: 4178
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000002s  (2.375 µs)
+#     Part 1:     0.002767s  (2.767 ms)
+#     Part 2:     0.071588s  (71.59 ms)
+#    Elapsed:     0.074396s  (74.40 ms)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
+
+
 def parse(text):
     return text.encode()
 
 
-def react_without(polymer, strip=0):
-    reacted = []
+def react(polymer, strip=0):
+    reduced = []
     idx = 0
+    l_poly = len(polymer)
 
-    while idx < len(polymer):
-        unit = polymer[idx]
-        if not (unit & 0b1011111) == strip:
-            reacted.append(unit)
+    while idx < l_poly:
+        if ((unit := polymer[idx]) & 0b1011111) != strip:
+            reduced.append(unit)
         idx += 1
-        while reacted and idx < len(polymer) and reacted[-1] ^ polymer[idx] == 32:
-            reacted.pop()
+        while reduced and idx < l_poly and reduced[-1] ^ polymer[idx] == 32:
+            reduced.pop()
             idx += 1
 
-    return reacted
+    return reduced
 
 
 def part1(polymer, args, p1_state):
-    return len(react_without(polymer))
+    return len(react(polymer))
 
 
 def part2(polymer, args, p1_state):
-    types = set(polymer.upper())
-    return min(len(react_without(polymer, type)) for type in types)
+    return min(len(react(polymer, type)) for type in set(polymer.upper()))
 
 
 # Runner

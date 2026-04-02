@@ -18,7 +18,7 @@ def read_solvers():
             continue
 
         input = open(input_path).read().strip("\n")
-        earn_stars = runpy.run_path(str(solver_path))["earn_stars"]
+        earn_stars = runpy.run_path(str(solver_path))["collect_stars"]
 
         solvers.append((input, earn_stars))
 
