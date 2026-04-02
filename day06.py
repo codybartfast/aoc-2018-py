@@ -17,6 +17,8 @@ def part1(coords, args, p1_state):
     min_y = min(y for x, y in coords)
     max_y = max(y for x, y in coords)
 
+    p1_state.value = (min_x + max_x) // 2, (min_y + max_y) // 2
+
     def to_infinity(coord):
         x, y = coord
         return x == min_x or x == max_x or y == min_y or y == max_y
@@ -30,16 +32,29 @@ def part1(coords, args, p1_state):
                 areas.setdefault(dists[0][1], []).append((x, y))
 
     finite = [
-        area
-        for area in areas.values()
-        if not any(to_infinity(coord) for coord in area)
+        area for area in areas.values() if not any(to_infinity(coord) for coord in area)
     ]
 
     return max(len(area) for area in finite)
 
 
-def part2(data, args, p1_state):
-    return "ans2"
+def part2(coords, args, p1_state):
+    mid = p1_state.value
+
+    safe = set([mid])
+    new = set(safe)
+
+    while new:
+        new = set(
+            (nx, ny)
+            for x, y in new
+            for nx, ny in [(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)]
+            if (nx, ny) not in safe
+            and sum(abs(cx - nx) + abs(cy - ny) for cx, cy in coords) < 10_000
+        )
+        safe.update(new)
+
+    return len(safe)
 
 
 # Runner
