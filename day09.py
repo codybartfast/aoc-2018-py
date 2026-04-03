@@ -1,3 +1,22 @@
+#  2018 Day 9
+#  ==========
+#
+#  Part 1: 390093
+#  Part 2: 3150377341
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000037s  (36.58 µs)
+#     Part 1:     0.009770s  (9.770 ms)
+#     Part 2:     1.308668s  (1.309 s)
+#    Elapsed:     1.318528s  (1.319 s)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
+
+
 class Marble:
     def __init__(self, value, prev=None):
         self.value = value
@@ -29,8 +48,8 @@ def play_game(n_players, last):
     current.next = current
     current.prev = current
 
-    player = 0
     marble = 0
+    player = 0
     while marble < last:
         marble += 1
         player = (player + 1) % n_players
