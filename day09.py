@@ -1,6 +1,3 @@
-import re
-
-
 class Marble:
     def __init__(self, value, prev=None):
         self.value = value
@@ -16,6 +13,8 @@ class Marble:
 
 
 def parse(text):
+    import re
+
     re_digits = re.compile(r"-?\d+")
 
     def numbers(txt):
@@ -35,10 +34,10 @@ def play_game(n_players, last):
     while marble < last:
         marble += 1
         player = (player + 1) % n_players
-        
+
         if marble % 23 or not marble:
             current = current.next
-            current =  Marble(marble, current)
+            current = Marble(marble, current)
         else:
             for _ in range(7):
                 current = current.prev
@@ -50,15 +49,16 @@ def play_game(n_players, last):
             current = next
 
     return scores
-            
+
 
 def part1(game, args, p1_state):
     n_players, last = game
     return max(play_game(n_players, last))
 
 
-def part2(data, args, p1_state):
-    return "ans2"
+def part2(game, args, p1_state):
+    n_players, last = game
+    return max(play_game(n_players, last * 100))
 
 
 # Runner
