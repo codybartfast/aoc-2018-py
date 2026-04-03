@@ -6,11 +6,6 @@ class Reader:
 
     def read(self):
         return self.read_n(1)[0]
-        # assert self.remaining
-        # item = self.items[self.idx]
-        # self.idx += 1
-        # self.remaining -= 1
-        # return item
 
     def read_n(self, n):
         assert n <= self.remaining
@@ -25,10 +20,17 @@ class Node:
         n_children = reader.read()
         n_meta = reader.read()
         self.children = [Node(reader) for _ in range(n_children)]
-        self.meta = reader.read_n(n_meta)
+        self.metadata = reader.read_n(n_meta)
 
-    def meta_total(self):
-        return sum(self.meta) + sum(node.meta_total() for node in self.children)
+    def check_one(self):
+        return sum(self.metadata) + sum(node.check_one() for node in self.children)
+
+
+    def check_two(self):
+        if self.children:
+            return sum(self.children[i - 1].check_two() for i in self.metadata if 0 < i <= len(self.children))
+        else:
+            return sum(self.metadata)
 
 
 def parse(text):
@@ -36,14 +38,15 @@ def parse(text):
 
 
 def part1(licence, args, p1_state):
-    # print(f"\n{licence}\n")
     reader = Reader(licence)
     root = Node(reader)
-    return root.meta_total()
+    p1_state.value = root
+    return root.check_one()
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    root = p1_state.value
+    return root.check_two()
 
 
 # Runner
