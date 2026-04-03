@@ -1,7 +1,11 @@
 import re
 
+
 def parse(text):
     re_digits = re.compile(r"-?\d+")
+
+    def numbers(txt):
+        return [int(t) for t in re_digits.findall(txt)]
 
     def parse_line(line):
         parts = line.split()
@@ -26,7 +30,7 @@ def part2(data, args, p1_state):
 
 def collect_stars(text=None, filepath=None, extra_args=None):
     import workshop as ws
-    
+
     if not text and filepath:
         text = open(filepath).read().strip()
     ws.get_cracking(text, parse, part1, part2, extra_args)
