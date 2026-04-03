@@ -1,11 +1,27 @@
+#  2018 Day 8
+#  ==========
+#
+#  Part 1: 47464
+#  Part 2: 23054
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000441s  (441.4 µs)
+#     Part 1:     0.001651s  (1.651 ms)
+#     Part 2:     0.000151s  (151.5 µs)
+#    Elapsed:     0.002283s  (2.283 ms)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
+
+
 class Reader:
     def __init__(self, items):
         self.items = items
         self.idx = 0
         self.remaining = len(items)
-
-    def read(self):
-        return self.read_n(1)[0]
 
     def read_n(self, n):
         assert n <= self.remaining
@@ -13,6 +29,9 @@ class Reader:
         self.idx += n
         self.remaining -= n
         return rslt
+
+    def read(self):
+        return self.read_n(1)[0]
 
 
 class Node:
@@ -25,10 +44,13 @@ class Node:
     def check_one(self):
         return sum(self.metadata) + sum(node.check_one() for node in self.children)
 
-
     def check_two(self):
         if self.children:
-            return sum(self.children[i - 1].check_two() for i in self.metadata if 0 < i <= len(self.children))
+            return sum(
+                self.children[i - 1].check_two()
+                for i in self.metadata
+                if 0 < i <= len(self.children)
+            )
         else:
             return sum(self.metadata)
 
@@ -38,8 +60,7 @@ def parse(text):
 
 
 def part1(licence, args, p1_state):
-    reader = Reader(licence)
-    root = Node(reader)
+    root = Node(Reader(licence))
     p1_state.value = root
     return root.check_one()
 
