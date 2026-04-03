@@ -1,14 +1,34 @@
+#  2018 Day 6
+#  ==========
+#
+#  Part 1: 4233
+#  Part 2: 45290
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000015s  (14.79 µs)
+#     Part 1:     0.056734s  (56.73 ms)
+#     Part 2:     0.112467s  (112.5 ms)
+#    Elapsed:     0.169269s  (169.3 ms)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
+
+
+# Part 1 is a bit more complicated than necesary because the more brute force
+# approch (see earlier commits) was taking > 400ms which seemed excessive.
+
 from collections import Counter
 
 
 def parse(text):
-
     def parse_line(line):
         parts = line.split(", ")
         return int(parts[0]), int(parts[1])
 
-    lines = text.splitlines()
-    return [parse_line(line) for line in lines]
+    return [parse_line(line) for line in text.splitlines()]
 
 
 def part1(coords, args, p1_state):
@@ -19,23 +39,32 @@ def part1(coords, args, p1_state):
 
     p1_state.value = (min_x + max_x) // 2, (min_y + max_y) // 2
 
-    def to_infinity(coord):
-        x, y = coord
-        return x == min_x or x == max_x or y == min_y or y == max_y
+    areas = [[coord, set([coord]), set([coord])] for coord in coords]
+    claims = {coord: coord for coord in coords}
+    new_claims = {None: None}
+    while new_claims:
+        new_claims.clear()
+        for area in areas:
+            coord, known, edge = area
+            new_edge = set()
+            for xy in [
+                (nx, ny)
+                for ex, ey in edge
+                for nx, ny in [(ex, ey - 1), (ex + 1, ey), (ex, ey + 1), (ex - 1, ey)]
+                if (nx, ny) not in known
+            ]:
+                if xy not in claims:
+                    if min_x <= xy[0] <= max_x and min_y <= xy[1] <= max_y:
+                        new_edge.add(xy)
+                        known.add(xy)
+                        claims[xy] = coord
+                        new_claims[xy] = coord
+                else:
+                    if xy in new_claims and new_claims[xy] != coord:
+                        claims[xy] = None
+            area[2] = new_edge
 
-    areas = {}
-    for y in range(min_y, max_y + 1):
-        for x in range(min_x, max_x + 1):
-            dists = [(abs(x - cx) + abs(y - cy), (cx, cy)) for cx, cy in coords]
-            dists.sort()
-            if dists[0][0] != dists[1][0]:
-                areas.setdefault(dists[0][1], []).append((x, y))
-
-    finite = [
-        area for area in areas.values() if not any(to_infinity(coord) for coord in area)
-    ]
-
-    return max(len(area) for area in finite)
+    return Counter(claims.values()).most_common()[0][1]
 
 
 def part2(coords, args, p1_state):
@@ -45,14 +74,15 @@ def part2(coords, args, p1_state):
     new = set(safe)
 
     while new:
-        new = set(
-            (nx, ny)
-            for x, y in new
-            for nx, ny in [(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)]
-            if (nx, ny) not in safe
-            and sum(abs(cx - nx) + abs(cy - ny) for cx, cy in coords) < 10_000
-        )
-        safe.update(new)
+        next_new = set()
+        for x, y in new:
+            for nx, ny in [(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)]:
+                if (nx, ny) not in safe and sum(
+                    abs(cx - nx) + abs(cy - ny) for cx, cy in coords
+                ) < 10_000:
+                    safe.add((nx, ny))
+                    next_new.add((nx, ny))
+        new = next_new
 
     return len(safe)
 
