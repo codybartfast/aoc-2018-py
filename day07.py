@@ -1,15 +1,28 @@
-import re
+#  2018 Day 7
+#  ==========
+#
+#  Part 1: BDHNEGOLQASVWYPXUMZJIKRTFC
+#  Part 2: 1107
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000027s  (26.96 µs)
+#     Part 1:     0.000057s  (57.00 µs)
+#     Part 2:     0.000062s  (62.25 µs)
+#    Elapsed:     0.000181s  (181.2 µs)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
 
 
 def parse(text):
-    re_digits = re.compile(r"-?\d+")
-
     def parse_line(line):
         parts = line.split()
         return (parts[1], parts[7])
 
-    lines = text.splitlines()
-    return [parse_line(line) for line in lines]
+    return [parse_line(line) for line in text.splitlines()]
 
 
 def relations(instructions):
@@ -45,9 +58,9 @@ def part2(instructions, args, p1_state):
     n_steps = len(supports)
     in_progress = {}
     time = 0
-    steps = []
+    done = []
 
-    while len(steps) < n_steps:
+    while len(done) < n_steps:
         while free_elves and (
             available := [step for step, reqs in requires.items() if not reqs]
         ):
@@ -61,7 +74,7 @@ def part2(instructions, args, p1_state):
         completed = in_progress[time]
         in_progress.pop(time)
         for step in completed:
-            steps.append(step)
+            done.append(step)
             free_elves += 1
             for dependent in supports[step]:
                 requires[dependent].remove(step)
