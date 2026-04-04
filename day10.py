@@ -40,11 +40,13 @@ def part1(lights, args, p1_state):
     closing_x_velocity = dy_max - dy_min
     x_dist = falling[0][1] - rising[0][1]
     time = x_dist // closing_x_velocity
-    coords = advance(lights, time + 1)
+    time += 1 # because
+    coords = advance(lights, time)
+    p1_state.value = time
     return "\n" + sky(coords)
 
 def part2(data, args, p1_state):
-    return "ans2"
+    return p1_state.value
 
 
 # Runner
