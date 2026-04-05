@@ -1,3 +1,6 @@
+BIG_NEG = -(10**18)
+
+
 def parse(text):
     return int(text)
 
@@ -11,11 +14,44 @@ def calc_grid(gsn):
     return grid
 
 
+def calc_ttls(grid):
+    ttls = [0] * 300 * 300
+    ttls[0] = grid[0]
+    for x in range(1, 300):
+        ttls[x] = ttls[x - 1] + grid[x]
+    for y in range(300, 300 * 300, 300):
+        ttls[y] = ttls[y - 300] + grid[y]
+    for y in range(300, 300 * 300, 300):
+        for x in range(1, 300):
+            i = x + y
+            ttls[i] = ttls[i - 1] + ttls[i - 300] - ttls[i - 301] + grid[i]
+    return ttls
+
+
+def best_square_of_size(ttls, size):
+    # not covering x = 0 or y = 0
+
+    best_ttl = BIG_NEG
+    for y in range(0, 300 - size):
+        for x in range(0, 300 - size):
+            ttl = (
+                ttls[x + size + (y + size) * 300]
+                - ttls[x + (y + size) * 300]
+                - ttls[x + size + y * 300]
+                + ttls[x + y * 300]
+            )
+            if ttl > best_ttl:
+                best_ttl = ttl
+                bx, by = x, y
+
+    return best_ttl, (bx + 1, by + 1, size)
+
+
 def part1(data, args, p1_state):
     grid = calc_grid(data)
 
     best_start = None
-    best_ttl = -(10 * 18)
+    best_ttl = BIG_NEG
     for y in range(297):
         for x in range(297):
             ttl = sum(
@@ -26,11 +62,20 @@ def part1(data, args, p1_state):
                 best_ttl = ttl
                 best_start = x, y
 
+    p1_state.value = grid
+    print(best_ttl)
     return best_start
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    grid = p1_state.value
+    ttls = calc_ttls(grid)
+    best = (BIG_NEG, None)
+    for size in range(1, 300):
+        size_best = best_square_of_size(ttls, size)
+        if size_best[0] > best[0]:
+            best = size_best
+    return best[1]
 
 
 # Runner
