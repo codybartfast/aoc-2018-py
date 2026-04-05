@@ -9,7 +9,7 @@ YEAR = "2018"
 
 
 # pot mods:
-#   - 
+#   -
 
 
 def get_day():
@@ -46,12 +46,13 @@ def get_filepath(file):
 def h_print(*args):
     print("# ", *args)
 
+
 class State:
     def __init__(self):
         self.ans1 = None
         self.value = None
 
-        
+
 def get_cracking(text, parse, part1, part2, extra_args):
 
     state = State()
@@ -59,7 +60,7 @@ def get_cracking(text, parse, part1, part2, extra_args):
     pc_start = time.perf_counter()
     day = get_day()
 
-    title = f"{YEAR} Day {day.lstrip("0")}"
+    title = f"{YEAR} Day {day.lstrip('0')}"
 
     print("\n")
     h_print(title)
@@ -161,10 +162,11 @@ def machine_fingerprint():
     return md5(fp.encode()).hexdigest()[:7]
 
 
-def read_glyphs(glyphs):
+def read_raster(raster: list[str]):
+    BIG = 10**18
 
-    alphabet = "ABCEFGHIJKLOPRSUYZ"
-    glyphabet = [
+    alphabet_6 = "ABCEFGHIJKLOPRSUYZ"
+    glyphabet_6 = [
         ".##..###...##..####.####..##..#..#..###...##.#..#.#.....##..###..###...###.#..#.#...#####.",
         "#..#.#..#.#..#.#....#....#..#.#..#...#.....#.#.#..#....#..#.#..#.#..#.#....#..#.#...#...#.",
         "#..#.###..#....###..###..#....####...#.....#.##...#....#..#.#..#.#..#.#....#..#..#.#...#..",
@@ -173,14 +175,66 @@ def read_glyphs(glyphs):
         "#..#.###...##..####.#.....###.#..#..###..##..#..#.####..##..#....#..#.###...##....#..####.",
     ]
 
-    def split_glyphs(glyphs):
+    alphabet_10 = "ABCEFGHJKLNPRXZ"
+    glyphabet_10 = [
+        "..##....#####....####...######..######...####...#....#.....###..#....#..#.......#....#..#####...#####...#....#..######..",
+        ".#..#...#....#..#....#..#.......#.......#....#..#....#......#...#...#...#.......##...#..#....#..#....#..#....#.......#..",
+        "#....#..#....#..#.......#.......#.......#.......#....#......#...#..#....#.......##...#..#....#..#....#...#..#........#..",
+        "#....#..#....#..#.......#.......#.......#.......#....#......#...#.#.....#.......#.#..#..#....#..#....#...#..#.......#...",
+        "#....#..#####...#.......#####...#####...#.......######......#...##......#.......#.#..#..#####...#####.....##.......#....",
+        "######..#....#..#.......#.......#.......#..###..#....#......#...##......#.......#..#.#..#.......#..#......##......#.....",
+        "#....#..#....#..#.......#.......#.......#....#..#....#......#...#.#.....#.......#..#.#..#.......#...#....#..#....#......",
+        "#....#..#....#..#.......#.......#.......#....#..#....#..#...#...#..#....#.......#...##..#.......#...#....#..#...#.......",
+        "#....#..#....#..#....#..#.......#.......#...##..#....#..#...#...#...#...#.......#...##..#.......#....#..#....#..#.......",
+        "#....#..#####....####...######..#........###.#..#....#...###....#....#..######..#....#..#.......#....#..#....#..######..",
+    ]
+
+    def normalise(raster):
+        # Trims empty space all around, checks dimensions, adds back trailing
+        # space after last char
+        
+        raster = [line for line in raster if "#" in line]
+        height = len(raster)
+        if height not in [6, 10]:
+            print("\n" + "\n".join(raster) + "\n")
+            raise RuntimeError(f"Unexpected number of lines: {height} (expect 6 or 10)")
+
+        x_min = BIG
+        x_max = -BIG
+        for line in raster:
+            x_min = min(x_min, line.find("#"))
+            x_max = max(x_max, line.rfind("#"))
+
+        width = x_max - x_min + 1
+        suffix = "." if height == 6 else ".."
+        raster = [line[x_min : x_min + width] + suffix for line in raster]
+        width += len(suffix)
+        if height == 6 and width % 5:
+            print("\n" + "\n".join(raster) + "\n")
+            raise RuntimeError(f"Unexpected width: {width} (expect multiple of 5)")
+        elif height == 10 and width % 8:
+            print("\n" + "\n".join(raster) + "\n")
+            raise RuntimeError(f"Unexpected width: {width} (expect multiple of 8)")
+
+        return raster
+
+    def split_glyphs(glyphs, width):
         tp_glyphs = list(zip(*glyphs))
         sep_glyphs = []
         while tp_glyphs:
-            tp_glyph, tp_glyphs = tp_glyphs[:5], tp_glyphs[5:]
+            tp_glyph, tp_glyphs = tp_glyphs[:width], tp_glyphs[width:]
             sep_glyphs.append("\n".join("".join(row) for row in zip(*tp_glyph)))
         return sep_glyphs
 
-    glyph_dict = dict(zip(split_glyphs(glyphabet), alphabet))
+    def read(alphabet, glyphabet, raster, char_width):
+        glyph_dict = dict(zip(split_glyphs(glyphabet, char_width), alphabet))
+        return "".join(glyph_dict[glyph] for glyph in split_glyphs(raster, char_width))
 
-    return "".join(glyph_dict[glyph] for glyph in split_glyphs(glyphs))
+    raster = normalise(raster)
+    match len(raster):
+        case 6:
+            return read(alphabet_6, glyphabet_6, raster, 5)
+        case 10:
+            return read(alphabet_10, glyphabet_10, raster, 8)
+        case _:
+            assert False # normalise() should prevent this
