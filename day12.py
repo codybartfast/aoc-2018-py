@@ -1,3 +1,6 @@
+from collections import deque
+
+
 def parse(text):
 
     def parse_line(line):
@@ -16,10 +19,10 @@ def parse(text):
 
 
 def grow(patterns, pots):
-    assert pots[:4] == [".", ".", ".", "."]
-    assert pots[-4:] == [".", ".", ".", "."]
+    # assert pots[:4] == [".", ".", ".", "."]
+    # assert pots[-4:] == [".", ".", ".", "."]
 
-    quints = zip(*[pots[s:] for s in range(5)])
+    quints = zip(*[pots[skip:] for skip in range(5)])
     return [
         ".",
         ".",
@@ -33,9 +36,11 @@ def count(offset, pots):
     return sum((i - offset) if p == "#" else 0 for i, p in enumerate(pots))
 
 
-def part1(data, args, p1_state):
+def part1(data, _, __):
     # print(f"\n{data}\n")
     start_pots, patterns = data
+    patterns = set(patterns)
+
     size = 200
     offset = 20
 
@@ -48,8 +53,32 @@ def part1(data, args, p1_state):
     return count(offset, pots)
 
 
-def part2(data, args, p1_state):
-    return "ans2"
+def part2(data, _, __):
+    start_pots, patterns = data
+    patterns = set(patterns)
+
+    size = 512
+    offset = 8
+
+    pots = ["."] * size
+    pots[offset : offset + len(start_pots)] = start_pots
+
+    gen = 0
+    prev_n_pots = count(offset, pots)
+    deltas = deque(-1 for _ in range(5))
+
+    while True:
+        gen += 1
+        pots = grow(patterns, pots)
+        n_pots = count(offset, pots)
+        delta = n_pots - prev_n_pots
+        deltas.append(delta)
+        prev_n_pots = n_pots
+        if delta == deltas.popleft() and len(set(deltas)) == 1:
+            break
+
+    remaining_gens = 50_000_000_000 - gen
+    return prev_n_pots + remaining_gens * deltas.pop()
 
 
 # Runner
