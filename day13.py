@@ -69,8 +69,35 @@ def part1(survey, args, p1_state):
     return f"{collision % width},{collision // width}"
 
 
-def part2(data, args, p1_state):
-    return "ans2"
+def part2(survey, args, p1_state):
+    width, track, carts = survey
+    DIRS = [-width, 1, width, -1]
+
+    pstns = [cart[0] for cart in carts]
+    crashed = None
+    while len(carts) > 1:
+        next_carts = []
+        for cart in carts:
+            if cart == crashed:
+                crashed = None
+                continue
+            pstn = cart[0]
+            cart = advance(DIRS, track, cart, width)
+            pstns.remove(pstn)
+            pstn = cart[0]
+            if pstn in pstns:
+                pstns.remove(pstn)
+                n_next = len(next_carts)
+                next_carts = [cart for cart in next_carts if cart[0] != pstn]
+                if len(next_carts) == n_next:
+                    crashed = [cart for cart in carts if cart[0] == pstn][0]
+            else:
+                pstns.append(pstn)
+                next_carts.append(cart)
+        carts = next_carts
+
+    last_collision = carts[0][0]
+    return f"{last_collision % width},{last_collision // width}"
 
 
 # Runner
