@@ -28,19 +28,19 @@ def part2(data, args, p1_state):
 
 
 def collect_stars(text=None, filepath=None, extra_args=None):
-    import workshop as ws
+    import workshop
 
     if not text and filepath:
         text = open(filepath).read().strip()
-    ws.get_cracking(text, parse, part1, part2, extra_args)
+    workshop.get_cracking(text, parse, part1, part2, extra_args)
 
 
 if __name__ == "__main__":
     import sys
-    import workshop as ws
+    import workshop
 
     file = sys.argv[1] if len(sys.argv) > 1 else None
-    filepath = ws.get_filepath(file)
+    filepath = workshop.get_filepath(file)
     if filepath:
         extra_args = sys.argv[2:]
         collect_stars(filepath=filepath, extra_args=extra_args)
