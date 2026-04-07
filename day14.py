@@ -1,9 +1,9 @@
 def parse(text):
-    return int(text)
+    return text
 
 
-def part1(n_recipe, args, p1_state):
-    print(f"\n{n_recipe}\n")
+def part1(text, args, p1_state):
+    n_recipe = int(text)
     recipes = [3, 7]
     elf1 = 0
     elf2 = 1
@@ -11,7 +11,6 @@ def part1(n_recipe, args, p1_state):
     reqd = n_recipe + 10
 
     while reqd:
-        # input((elf1, elf2, recipes))
         sum = (r1 := recipes[elf1]) + (r2 := recipes[elf2])
         if sum >= 10:
             recipes.append(1)
@@ -23,8 +22,28 @@ def part1(n_recipe, args, p1_state):
     return "".join(str(rcp) for rcp in recipes[n_recipe : n_recipe + 10])
 
 
-def part2(data, args, p1_state):
-    return "ans2"
+def part2(text, args, p1_state):
+
+    target = [int(c) for c in text]
+    t_len = len(target)
+
+    recipes = [3, 7]
+    elf1 = 0
+    elf2 = 1
+
+    while True:
+        sum = (r1 := recipes[elf1]) + (r2 := recipes[elf2])
+        if sum >= 10:
+            recipes.append(1)
+            if recipes[-t_len:] == target:
+                break
+        recipes.append(sum % 10)
+        if recipes[-t_len:] == target:
+            break
+        elf1 = (elf1 + 1 + r1) % len(recipes)
+        elf2 = (elf2 + 1 + r2) % len(recipes)
+
+    return len(recipes) - t_len
 
 
 # Runner
