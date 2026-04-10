@@ -11,6 +11,7 @@ PSTN = 2
 def parse(text):
     lines = text.splitlines()
     width = len(lines[0])
+    dirs = -width, 1, width, -1
     cave = []
     elves = []
     goblins = []
@@ -27,7 +28,7 @@ def parse(text):
                     goblins.append(goblin)
                 case _:
                     cave.append(char)
-    return cave, (-width, 1, width, -1), elves, goblins
+    return lambda: (list(cave), dirs, list(map(list, elves)), list(map(list, goblins)))
 
 
 def vprint(*args):
@@ -64,27 +65,28 @@ def find_open_squares(sitrep, group):
         if cave[square := pstn + dir] == "."
     }
 
+def find_nearest(sitrep, first, group):
+    cave, dirs, *_ = sitrep
+    edge = {first}
+    seen = set(edge)
+    dist = 0
 
-def find_nearest(sitrep, start, group):
-    def find(first):
-        edge = {first}
-        seen = set(edge)
-        dist = 0
+    while edge:
+        dist += 1
+        new_edge = set()
+        for e in edge:
+            if e in group:
+                return dist
+            for dir in dirs:
+                if (n := e + dir) not in seen:
+                    seen.add(n)
+                    if cave[n] == ".":
+                        new_edge.add(n)
+        edge = new_edge
 
-        while edge:
-            dist += 1
-            new_edge = set()
-            for e in edge:
-                if e in group:
-                    return dist
-                for dir in dirs:
-                    if (n := e + dir) not in seen:
-                        seen.add(n)
-                        if cave[n] == ".":
-                            new_edge.add(n)
-            edge = new_edge
+    return None
 
-        return None
+def find_next_move(sitrep, start, group):
 
     vprint("Finding nearest from start:", start, "to group:", group)
 
@@ -93,7 +95,7 @@ def find_nearest(sitrep, start, group):
     dist_firsts = [
         (dist, first)
         for dir in dirs
-        if cave[first := start + dir] == "." and (dist := find(first)) is not None
+        if cave[first := start + dir] == "." and (dist := find_nearest(sitrep, first, group)) is not None
     ]
 
     if not dist_firsts:
@@ -124,9 +126,10 @@ def select_target(sitrep, combatant, targets):
     return in_reach[0]
 
 
-def attack_target(sitrep, targets, target):
+def attack_target(sitrep, targets, target, boosted):
     vprint("Attacking", target)
-    target[HP] -= 3
+    attack_power = 3 if target[TYPE] == "E" else boosted
+    target[HP] -= attack_power
     if target[HP] <= 0:
         vprint("Killed", target, targets)
         targets.remove(target)
@@ -134,7 +137,7 @@ def attack_target(sitrep, targets, target):
         sitrep[CAVE][target[PSTN]] = "."
 
 
-def take_turn(sitrep, combatant):
+def take_turn(sitrep, combatant, boosted):
     if combatant[HP] <= 0:
         return
         print("I'M NOT DEAD YET! - OH YES YOU ARE!")
@@ -147,7 +150,7 @@ def take_turn(sitrep, combatant):
         if not open_squares:
             return
 
-        next_step = find_nearest(sitrep, combatant[PSTN], open_squares)
+        next_step = find_next_move(sitrep, combatant[PSTN], open_squares)
         if not next_step:
             return
 
@@ -156,15 +159,15 @@ def take_turn(sitrep, combatant):
 
     vprint("Got target:", target)
     if target:
-        attack_target(sitrep, targets, target)
+        attack_target(sitrep, targets, target, boosted)
 
 
-def battle(sitrep):
+def battle(sitrep, boosted):
     complete_rounds = 0
     while sitrep[ELVES] and sitrep[GOBLINS]:
-        print()
-        print(f"After {complete_rounds} Rounds:")
-        display(sitrep)
+        # print()
+        # print(f"After {complete_rounds} Rounds:")
+        # display(sitrep)
 
         start_positions = sorted(
             sitrep[ELVES] + sitrep[GOBLINS], key=lambda combatant: combatant[PSTN]
@@ -173,28 +176,40 @@ def battle(sitrep):
         for combatant in start_positions:
             if not (sitrep[ELVES] and sitrep[GOBLINS]):
                 break
-            take_turn(sitrep, combatant)
+            take_turn(sitrep, combatant, boosted)
         else:
             complete_rounds += 1
 
-    print()
-    print(f"After {complete_rounds} Rounds:")
-    display(sitrep)
-    print()
+    return complete_rounds
+
+
+def part1(get_sitrep, args, p1_state):
+    sitrep = get_sitrep()
+    complete_rounds = battle(sitrep, 3)
+
+    # print()
+    # print(f"After {complete_rounds} Rounds:")
+    # display(sitrep)
+    # print()
 
     hp = sum(cmbt[HP] for army in [sitrep[ELVES], sitrep[GOBLINS]] for cmbt in army)
-    print(complete_rounds, " * ", hp)
-    print()
+    # print(complete_rounds, " * ", hp)
+    # print()
     return hp * complete_rounds
 
 
-def part1(sitrep, args, p1_state):
-    print(f"\n{sitrep}\n")
-    return battle(sitrep)
-
-
-def part2(data, args, p1_state):
-    return "ans2"
+def part2(get_sitrep, args, p1_state):
+    boosted = 3
+    sr = get_sitrep()
+    n_elves = len(sr[ELVES])
+    
+    while (rounds := battle(sitrep := get_sitrep(), boosted)) and len(sitrep[ELVES]) < n_elves:
+        boosted += 1
+        # input()
+    
+    hp = sum(cmbt[HP] for army in [sitrep[ELVES], sitrep[GOBLINS]] for cmbt in army)
+    # print(f"{hp} * {rounds} ({boosted})")
+    return rounds * hp
 
 
 # Runner
