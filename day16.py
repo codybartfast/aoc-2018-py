@@ -27,16 +27,15 @@ def parse(text):
     def numbers(txt):
         return [int(t) for t in re_digits.findall(txt)]
 
-    text1, text2 = text.split("\n\n\n")
+    text1, text2 = text.split("\n\n\n\n")
     part1 = list(batched(map(numbers, [ln for ln in text1.splitlines() if ln]), 3))
     part2 = list(map(numbers, text2.splitlines()))
 
     return part1, part2
 
 
-def apply(opname, instr, in_regs):
+def apply(opname, instr, regs):
     _, arg1, arg2, dest = instr
-    regs = list(in_regs)
 
     if opname[0] in ["g", "e"]:
         op_class = opname[:-2]
@@ -88,28 +87,66 @@ def apply(opname, instr, in_regs):
 
     return regs
 
-    
-
 
 def consistent_ops(sample):
     before, instr, after = sample
-    consistent = set()
+    stats = [None] * len(OPNAMES)
+    stats_idx = 0
     for opname in OPNAMES:
-        if apply(opname, instr, before) == after:
-            consistent.add(opname)
-    return consistent
+        stats[stats_idx] = apply(opname, instr, list(before)) == after
+        stats_idx += 1
+    return stats
 
+
+def match_ops(samples, stats):
+    summary = [[True] * len(OPNAMES)] * len(OPNAMES)
+    for sample, stat in zip(samples, stats):
+        idx = sample[1][0]
+        summary[idx] = [(smry and rslt) for smry, rslt in zip(summary[idx], stat)]
+        
+    # for x in summary:
+    #     print([int(x) for x in x])
+        
+    code_to_name = {}
+    while len(code_to_name) < len(OPNAMES):    
+        for code, matches in enumerate(summary):
+            if sum(matches) == 1:
+                true_idx = matches.index(True)
+                name = OPNAMES[true_idx]
+                code_to_name[code] = name
+                for mtchs in summary:
+                    mtchs[true_idx] = False
+
+                # print(code, " => ", name)
+                # for x in summary:
+                #     print([int(x) for x in x])
+                break
+        else:
+            assert False
+
+    return code_to_name
+                
+
+def run(program, code_to_name):
+    regs = [0] * 4
+    for instr in program:
+        regs = apply(code_to_name[instr[0]], instr, regs)
+    return regs
+    
 
 
 def part1(data, args, p1_state):
     samples, program = data
-    # print(f"\n{samples}\n")
-
-    return sum(1 for sample in samples if  len(consistent_ops(sample)) >= 3)
+    all_stats = [consistent_ops(sample) for sample in samples]
+    p1_state.value = all_stats
+    return sum(sum(stats) >= 3 for stats in all_stats)
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    samples, program = data
+    all_stats = p1_state.value
+    code_to_name = match_ops(samples, all_stats)
+    return run(program, code_to_name)[0]
 
 
 # Runner
