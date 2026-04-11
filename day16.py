@@ -1,3 +1,22 @@
+#  2018 Day 16
+#  ===========
+#
+#  Part 1: 592
+#  Part 2: 557
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.002595s  (2.595 ms)
+#     Part 1:     0.002043s  (2.043 ms)
+#     Part 2:     0.000369s  (369.0 µs)
+#    Elapsed:     0.005054s  (5.054 ms)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
+
+
 OPNAMES = [
     "addr",
     "addi",
@@ -16,6 +35,8 @@ OPNAMES = [
     "eqri",
     "eqrr",
 ]
+
+N_OPS = len(OPNAMES)
 
 
 def parse(text):
@@ -37,53 +58,39 @@ def parse(text):
 def apply(opname, instr, regs):
     _, arg1, arg2, dest = instr
 
-    if opname[0] in ["g", "e"]:
-        op_class = opname[:-2]
-        match opname[-2:]:
-            case "ir":
-                val1, val2 = arg1, regs[arg2]
-            case "ri":
-                val1, val2 = regs[arg1], arg2
-            case "rr":
-                val1, val2 = regs[arg1], regs[arg2]
-            case _:
-                assert False
-    else:
-        op_class = opname[:-1]
-        if op_class == "set":
-            match opname[-1:]:
-                case "r":
-                    val1, val2 = regs[arg1], None
-                case "i":
-                    val1, val2 = arg1, None
-                case _:
-                    assert False
-        else:
-            match opname[-1:]:
-                case "r":
-                    val1, val2 = regs[arg1], regs[arg2]
-                case "i":
-                    val1, val2 = regs[arg1], arg2
-                case _:
-                    assert False
-
-    match op_class:
-        case "add":
-            regs[dest] = val1 + val2
-        case "mul":
-            regs[dest] = val1 * val2
-        case "ban":
-            regs[dest] = val1 & val2
-        case "bor":
-            regs[dest] = val1 | val2
-        case "set":
-            regs[dest] = val1
-        case "gt":
-            regs[dest] = int(val1 > val2)
-        case "eq":
-            regs[dest] = int(val1 == val2)
-        case _:
-            assert False, op_class
+    match opname:
+        case "addr":
+            regs[dest] = regs[arg1] + regs[arg2]
+        case "addi":
+            regs[dest] = regs[arg1] + arg2
+        case "mulr":
+            regs[dest] = regs[arg1] * regs[arg2]
+        case "muli":
+            regs[dest] = regs[arg1] * arg2
+        case "banr":
+            regs[dest] = regs[arg1] & regs[arg2]
+        case "bani":
+            regs[dest] = regs[arg1] & arg2
+        case "borr":
+            regs[dest] = regs[arg1] | regs[arg2]
+        case "bori":
+            regs[dest] = regs[arg1] | arg2
+        case "setr":
+            regs[dest] = regs[arg1]
+        case "seti":
+            regs[dest] = arg1
+        case "gtir":
+            regs[dest] = arg1 > regs[arg2]
+        case "gtri":
+            regs[dest] = regs[arg1] > arg2
+        case "gtrr":
+            regs[dest] = regs[arg1] > regs[arg2]
+        case "eqir":
+            regs[dest] = arg1 == regs[arg2]
+        case "eqri":
+            regs[dest] = regs[arg1] == arg2
+        case "eqrr":
+            regs[dest] = regs[arg1] == regs[arg2]
 
     return regs
 
@@ -91,24 +98,18 @@ def apply(opname, instr, regs):
 def consistent_ops(sample):
     before, instr, after = sample
     stats = [None] * len(OPNAMES)
-    stats_idx = 0
-    for opname in OPNAMES:
-        stats[stats_idx] = apply(opname, instr, list(before)) == after
-        stats_idx += 1
+    for idx, opname in enumerate(OPNAMES):
+        stats[idx] = apply(opname, instr, list(before)) == after
     return stats
 
 
 def match_ops(samples, stats):
     summary = [[True] * len(OPNAMES)] * len(OPNAMES)
-    for sample, stat in zip(samples, stats):
-        idx = sample[1][0]
-        summary[idx] = [(smry and rslt) for smry, rslt in zip(summary[idx], stat)]
-        
-    # for x in summary:
-    #     print([int(x) for x in x])
-        
+    for (_, (code, *_), _), stat in zip(samples, stats):
+        summary[code] = [summary[code][idx] and stat[idx] for idx in range(N_OPS)]
+
     code_to_name = {}
-    while len(code_to_name) < len(OPNAMES):    
+    for _ in range(N_OPS):
         for code, matches in enumerate(summary):
             if sum(matches) == 1:
                 true_idx = matches.index(True)
@@ -116,23 +117,16 @@ def match_ops(samples, stats):
                 code_to_name[code] = name
                 for mtchs in summary:
                     mtchs[true_idx] = False
-
-                # print(code, " => ", name)
-                # for x in summary:
-                #     print([int(x) for x in x])
                 break
-        else:
-            assert False
 
     return code_to_name
-                
+
 
 def run(program, code_to_name):
     regs = [0] * 4
     for instr in program:
         regs = apply(code_to_name[instr[0]], instr, regs)
     return regs
-    
 
 
 def part1(data, args, p1_state):
