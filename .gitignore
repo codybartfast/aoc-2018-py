@@ -1,6 +1,9 @@
 # Thank you Apple
 .DS_Store
 
+# General
+~*
+
 # Python-generated files
 __pycache__/
 
