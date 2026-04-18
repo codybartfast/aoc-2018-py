@@ -29,11 +29,11 @@ RIGHT = 1
 def parse(text):
 
     def parse_line(line):
-        h1, h2 = line.split(", ")
-        n = int(h1[2:])
-        min, max = h2[2:].split("..")
+        left, right = line.split(", ")
+        n = int(left[2:])
+        min, max = right[2:].split("..")
         range = (int(min), int(max))
-        return (n, range) if h1[0] == "x" else (range, n)
+        return (n, range) if left[0] == "x" else (range, n)
 
     return [parse_line(line) for line in text.splitlines()]
 
@@ -53,22 +53,19 @@ def display(scan):
         print()
 
 
-def expand(layer):
-    match layer:
+def expand(vein):
+    match vein:
         case (x1, x2), y:
             return [(x, y) for x in range(x1, x2 + 1)]
         case x, (y1, y2):
             return [(x, y) for y in range(y1, y2 + 1)]
 
 
-def get_scan(layers):
-    coords = [coord for layer in layers for coord in expand(layer)]
-    scan = {coord: "#" for coord in coords}
-    return scan
+def get_scan(veins):
+    return {coord: "#" for vein in veins for coord in expand(vein)}
 
 
 def percolate(scan, y_max, pstn):
-
     x, y = pstn
     y += 1
     pstn = x, y
@@ -82,8 +79,6 @@ def percolate(scan, y_max, pstn):
 
     return [(FLOOD, pstn)]
 
-    return []
-
 
 def is_base(scan, pstn, dir):
     x, y = pstn
@@ -94,7 +89,7 @@ def is_base(scan, pstn, dir):
     )
 
 
-def flow(scan, pstn, dir):
+def spread(scan, pstn, dir):
     x, y = pstn
 
     while True:
@@ -118,13 +113,13 @@ def flow(scan, pstn, dir):
                 assert False
 
 
-def drain(scan, pstn):
+def flood(scan, pstn):
     if is_base(scan, pstn, LEFT) and is_base(scan, pstn, RIGHT):
         x, y = pstn
         y -= 1
         pstn = x, y
         scan[pstn] = "~"
-        return flow(scan, pstn, LEFT) + flow(scan, pstn, RIGHT)
+        return spread(scan, pstn, LEFT) + spread(scan, pstn, RIGHT)
 
 
 def seep(scan, y_max, trickle):
@@ -134,7 +129,7 @@ def seep(scan, y_max, trickle):
     if dir == PERCOLATE:
         return percolate(scan, y_max, pstn)
     else:
-        match drain(scan, pstn):
+        match flood(scan, pstn):
             case None:
                 return []
             case []:
@@ -152,7 +147,7 @@ def soak(scan, y_max, trickles):
         ]
 
 
-def find_free_flowing(scan):
+def mark_free_flowing(scan):
     wet = list(
         sorted(
             (pstn for pstn, val in scan.items() if val == "~"),
@@ -178,7 +173,7 @@ def part1(line_defs, args, p1_state):
 
 def part2(data, args, p1_state):
     scan, y_min = p1_state.value
-    find_free_flowing(scan)
+    mark_free_flowing(scan)
     return sum(val == "~" for (_, y), val in scan.items() if y_min <= y)
 
 
