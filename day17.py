@@ -1,3 +1,22 @@
+#  2018 Day 17
+#  ===========
+#
+#  Part 1: 33362
+#  Part 2: 27801
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000901s  (901.3 µs)
+#     Part 1:     0.017280s  (17.28 ms)
+#     Part 2:     0.010761s  (10.76 ms)
+#    Elapsed:     0.028991s  (28.99 ms)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
+
+
 BIG = 10**18
 
 PERCOLATE = 0
@@ -30,7 +49,7 @@ def display(scan):
     for y in range(y_min, y_max + 1):
         print(f"{y:4} ", end="")
         for x in range(x_min, x_max + 1):
-            print(scan[x, y].replace("#", "█") if (x, y) in scan else " ", end="")
+            print(scan[x, y] if (x, y) in scan else " ", end="")
         print()
 
 
@@ -91,17 +110,15 @@ def flow(scan, pstn, dir):
                     return []
             case "~":
                 scan[x, y] = "~"
-                # print("~")
                 continue
             case "#":
                 scan[x, y] = "~"
-                # print("#")
                 continue
             case _:
                 assert False
 
 
-def flood(scan, pstn):
+def drain(scan, pstn):
     if is_base(scan, pstn, LEFT) and is_base(scan, pstn, RIGHT):
         x, y = pstn
         y -= 1
@@ -117,7 +134,7 @@ def seep(scan, y_max, trickle):
     if dir == PERCOLATE:
         return percolate(scan, y_max, pstn)
     else:
-        match flood(scan, pstn):
+        match drain(scan, pstn):
             case None:
                 return []
             case []:
@@ -135,17 +152,34 @@ def soak(scan, y_max, trickles):
         ]
 
 
+def find_free_flowing(scan):
+    wet = list(
+        sorted(
+            (pstn for pstn, val in scan.items() if val == "~"),
+            key=lambda pstn: (pstn[1], pstn[0]),
+        )
+    )
+    for x, y in wet:
+        if scan.get((x - 1, y), ".") in [".", "|"]:
+            scan[x, y] = "|"
+    for x, y in reversed(wet):
+        if scan.get((x + 1, y), ".") in [".", "|"]:
+            scan[x, y] = "|"
+
+
 def part1(line_defs, args, p1_state):
     scan = get_scan(line_defs)
     y_min = min(y for _, y in scan)
     y_max = max(y for _, y in scan)
     soak(scan, y_max, [(PERCOLATE, (500, 0))])
-    # display(scan)
+    p1_state.value = scan, y_min
     return sum(val == "~" for (_, y), val in scan.items() if y_min <= y)
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    scan, y_min = p1_state.value
+    find_free_flowing(scan)
+    return sum(val == "~" for (_, y), val in scan.items() if y_min <= y)
 
 
 # Runner
