@@ -1,12 +1,26 @@
-from array import array
+#  2018 Day 18
+#  ===========
+#
+#  Part 1: 519552
+#  Part 2: 165376
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000027s  (27.17 µs)
+#     Part 1:     0.007619s  (7.619 ms)
+#     Part 2:     0.401667s  (401.7 ms)
+#    Elapsed:     0.409360s  (409.4 ms)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
 
 
 def parse(text):
     lines = text.splitlines()
-    assert len(lines) == len(lines[0])
     width = len(lines) + 2
-    parts = []
-    parts.extend(["."] * width)
+    parts = ["."] * width
     for line in lines:
         parts.append(".")
         parts.extend(list(line))
@@ -16,23 +30,12 @@ def parse(text):
     return width, parts
 
 
-def display(width, terra):
-    print()
-    for start in range(0, width * width, width):
-        print("".join(terra[start : start + width]))
-    print()
-
-
 def value(terra):
     return terra.count("|") * terra.count("#")
 
 
-def terranova(width):
-    return ["."] * (width * width)
-
-
 def minute(width, terra):
-    tnova = terranova(width)
+    tnova = ["."] * (width * width)
     for y in range(1, width - 1):
         for x in range(1, width - 1):
             pstn = y * width + x
@@ -85,9 +88,9 @@ def part2(data, args, p1_state):
     values = []
     while True:
         terra = minute(width, terra)
-        v = value(terra)
-        values.append(v)
-        if values.count(v) == 2:
+        val = value(terra)
+        values.append(val)
+        if values.count(val) == 2:
             break
 
     val = values[-1]
