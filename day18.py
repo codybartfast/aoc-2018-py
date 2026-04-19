@@ -68,17 +68,37 @@ def minute(width, terra):
 
 def part1(data, args, p1_state):
     width, terra = data
-    display(width, terra)
 
     for _ in range(10):
         terra = minute(width, terra)
-        display(width, terra)
 
     return value(terra)
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    width, terra = data
+    prelude = 512
+
+    for _ in range(prelude):
+        terra = minute(width, terra)
+
+    values = []
+    while True:
+        terra = minute(width, terra)
+        v = value(terra)
+        values.append(v)
+        if values.count(v) == 2:
+            break
+
+    val = values[-1]
+    pstns = [i for i, v in enumerate(values) if v == val]
+    period = pstns[1] - pstns[0]
+    remaining = (1_000_000_000 - len(values) - prelude) % period
+
+    for _ in range(remaining):
+        terra = minute(width, terra)
+
+    return value(terra)
 
 
 # Runner
