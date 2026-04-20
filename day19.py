@@ -8,16 +8,22 @@ def parse(text):
     return int(lines[0][-1]), [parse_line(line) for line in lines[1:]]
 
 
-def boot():
-    return [0] * 6
+def boot(reg_zero=0):
+    regs = [0] * 6
+    regs[0] = reg_zero
+    return regs
 
 
 def run(pcr, prog, regs):
     pc = 0
 
+    # blah = 0 if regs[0] else 1001
+
     while 0 <= pc < len(prog):
-        regs[pcr] = pc 
+        regs[pcr] = pc
         opname, arg1, arg2, dest = prog[pc]
+
+        # print(pc, prog[pc], regs)
 
         match opname:
             case "addr":
@@ -45,6 +51,7 @@ def run(pcr, prog, regs):
             case "gtri":
                 regs[dest] = regs[arg1] > arg2
             case "gtrr":
+                # print(pc, regs[arg1], regs[arg2], regs[arg1] > regs[arg2])
                 regs[dest] = regs[arg1] > regs[arg2]
             case "eqir":
                 regs[dest] = arg1 == regs[arg2]
@@ -53,8 +60,17 @@ def run(pcr, prog, regs):
             case "eqrr":
                 regs[dest] = regs[arg1] == regs[arg2]
 
+            case "modr":
+                # print(regs[arg1], regs[arg2], regs[arg1] % regs[arg2])
+                regs[dest] = regs[arg1] % regs[arg2]
+
         pc = regs[pcr]
         pc += 1
+
+        # blah += 1
+        # if blah == 1000:
+        #     print(regs)
+        #     exit()
 
     return regs
 
@@ -67,7 +83,17 @@ def part1(data, args, p1_state):
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    pcr, prog = data
+
+    prog[2] = ("modr", 2, 1, 4)
+    prog[3] = ("gtri", 4, 0, 4)
+    prog[4] = ("addr", 4, 3, 3)
+    prog[5] = ("addr", 1, 0, 0)
+    prog[6] = ("addi", 3, 5, 3)
+
+    regs = boot(1)
+    run(pcr, prog, regs)
+    return regs[0]
 
 
 # Runner
