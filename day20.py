@@ -1,3 +1,22 @@
+#  2018 Day 20
+#  ===========
+#
+#  Part 1: 3788
+#  Part 2: 8568
+#
+#  Timings
+#  --------------------------------------
+#      Parse:     0.000000s  (0.208 µs)
+#     Part 1:     0.053601s  (53.60 ms)
+#     Part 2:     0.000129s  (129.0 µs)
+#    Elapsed:     0.053769s  (53.77 ms)
+#  --------------------------------------
+#
+#     Date:  April 2026
+#  Machine:  MacBook M4
+#   Python:  3.14.3
+
+
 BIG = 10**18
 
 
@@ -5,7 +24,7 @@ def parse(text):
     return text
 
 
-def display(project):
+def display(facility):
     print()
 
     x_min = BIG
@@ -13,7 +32,7 @@ def display(project):
     y_min = BIG
     y_max = -BIG
 
-    for x, y in project:
+    for x, y in facility:
         if x < x_min:
             x_min = x
         if x > x_max:
@@ -25,52 +44,52 @@ def display(project):
 
     for y in range(y_min - 1, y_max + 2):
         for x in range(x_min - 1, x_max + 2):
-            char = project.get((x, y), "#")
+            char = facility.get((x, y), "#")
             print(char if type(char) is str else ".", end="")
         print()
 
     print()
 
 
-def expand(regex, idx, end, heads, project):
+def expand(regex, idx, end, heads, facility):
     while (idx := idx + 1) < end:
         match regex[idx]:
             case "N":
                 heads = [
                     ((x, y - 2), dist + 1)
                     for (x, y), dist in heads
-                    if (x, y - 2) not in project
+                    if (x, y - 2) not in facility
                 ]
                 for (x, y), dist in heads:
-                    project[x, y + 1] = "-"
-                    project[x, y] = min(dist, project.get((x, y), BIG))
+                    facility[x, y + 1] = "-"
+                    facility[x, y] = dist
             case "E":
                 heads = [
                     ((x + 2, y), dist + 1)
                     for (x, y), dist in heads
-                    if (x + 2, y) not in project
+                    if (x + 2, y) not in facility
                 ]
                 for (x, y), dist in heads:
-                    project[x - 1, y] = "|"
-                    project[x, y] = min(dist, project.get((x, y), BIG))
+                    facility[x - 1, y] = "|"
+                    facility[x, y] = dist
             case "S":
                 heads = [
                     ((x, y + 2), dist + 1)
                     for (x, y), dist in heads
-                    if (x, y + 2) not in project
+                    if (x, y + 2) not in facility
                 ]
                 for (x, y), dist in heads:
-                    project[x, y - 1] = "-"
-                    project[x, y] = min(dist, project.get((x, y), BIG))
+                    facility[x, y - 1] = "-"
+                    facility[x, y] = dist
             case "W":
                 heads = [
                     ((x - 2, y), dist + 1)
                     for (x, y), dist in heads
-                    if (x - 2, y) not in project
+                    if (x - 2, y) not in facility
                 ]
                 for (x, y), dist in heads:
-                    project[x + 1, y] = "|"
-                    project[x, y] = min(dist, project.get((x, y), BIG))
+                    facility[x + 1, y] = "|"
+                    facility[x, y] = dist
             case "(":
                 start = idx
                 bars = []
@@ -92,9 +111,9 @@ def expand(regex, idx, end, heads, project):
 
                 new_heads = []
                 for bar in bars:
-                    new_heads.extend(expand(regex, start, bar, list(heads), project))
+                    new_heads.extend(expand(regex, start, bar, list(heads), facility))
                     start = bar
-                return expand(regex, idx, end, new_heads, project)
+                return expand(regex, idx, end, new_heads, facility)
             case "$":
                 pass
             case _:
@@ -104,10 +123,10 @@ def expand(regex, idx, end, heads, project):
 
 
 def part1(regex, args, p1_state):
-    project = {(0, 0): 0}
-    expand(regex, 0, len(regex), [((0, 0), 0)], project)
-    display(project)
-    dists = [dist for dist in project.values() if type(dist) is int]
+    facility = {(0, 0): 0}
+    expand(regex, 0, len(regex), [((0, 0), 0)], facility)
+    # display(facility)
+    dists = [dist for dist in facility.values() if type(dist) is int]
     p1_state.value = dists
     return max(dists)
 
