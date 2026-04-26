@@ -108,11 +108,13 @@ def part1(regex, args, p1_state):
     expand(regex, 0, len(regex), [((0, 0), 0)], project)
     display(project)
     dists = [dist for dist in project.values() if type(dist) is int]
+    p1_state.value = dists
     return max(dists)
 
 
 def part2(data, args, p1_state):
-    return "ans2"
+    dists = p1_state.value
+    return sum(1 for dist in dists if dist >= 1000)
 
 
 # Runner
